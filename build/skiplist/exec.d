@@ -1,5 +1,4 @@
-build\display\text_print_help.o: \
- D:\1code\C_skip_list\src\display\text_print_help.c \
+build\skiplist\exec.o: D:\1code\C_skip_list\src\skiplist\exec.c \
  D:/1code/C_skip_list/include/include.h \
  D:/1code/C_skip_list/include/utils/utils.h \
  D:/1code/C_skip_list/include/utils/statistics.h \

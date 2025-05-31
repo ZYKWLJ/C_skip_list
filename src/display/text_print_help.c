@@ -19,19 +19,31 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+
 // 定义表格边框宏
-#define BORDER_PLUS "+"
-#define BORDER_MINUS "-"
-#define BORDER_VERTICAL_LINE "|"
+// #define BORDER_PLUS "+"
+// #define BORDER_MINUS "-"
+// #define BORDER_VERTICAL_LINE "|"
 // #define BORDER_PLUS ""
 // #define BORDER_MINUS ""
 // #define BORDER_VERTICAL_LINE ""
 // 打印表格内容的函数（指令help版本）
 
 // 这是不管这一列有没有数据，都打印该列的带有表头的打印函数
+
+char BORDER_PLUS[2] = {0};
+char BORDER_MINUS[2] = {0};
+char BORDER_VERTICAL_LINE[2] = {0};
+
 void text_print_head1_blank1(const char **str[], int columns_num)
 {
     // 判断边框打印否
+
+    {
+        BORDER_PLUS[0] = '+';
+        BORDER_MINUS[0] = '-';
+        BORDER_VERTICAL_LINE[0] = '|';
+    }
 
     setlocale(LC_ALL, ""); // 设置本地化，支持宽字符
     // 1. 计算每列的最大宽度
@@ -132,7 +144,11 @@ void text_print_head1_blank1(const char **str[], int columns_num)
 void text_print_head1_blank0(const char **str[], int columns_num)
 {
     // 判断边框打印否
-    // ();
+    {
+        BORDER_PLUS[0] = ' ';
+        BORDER_MINUS[0] = ' ';
+        BORDER_VERTICAL_LINE[0] = ' ';
+    }
     setlocale(LC_ALL, ""); // 设置本地化，支持宽字符
 
     // 1. 计算每列的最大宽度并确定哪些列需要打印
@@ -299,7 +315,11 @@ void text_print_head1_blank0(const char **str[], int columns_num)
 void text_print_head0_blank1(const char **str[], int columns_num)
 {
     // 判断边框打印否
-    // ();
+    {
+        BORDER_PLUS[0] = '+';
+        BORDER_MINUS[0] = '-';
+        BORDER_VERTICAL_LINE[0] = '|';
+    }
     setlocale(LC_ALL, ""); // 设置本地化，支持宽字符
 
     // 1. 计算每列的最大宽度
@@ -377,6 +397,11 @@ void text_print_head0_blank1(const char **str[], int columns_num)
 
 void text_print_head0_blank0(const char **str[], int columns_num)
 {
+    {
+        BORDER_PLUS[0] = ' ';
+        BORDER_MINUS[0] = ' ';
+        BORDER_VERTICAL_LINE[0] = ' ';
+    }
     setlocale(LC_ALL, ""); // 设置本地化，支持宽字符
     // LOG_PRINT("text_print_help_all 1 passed!");
 

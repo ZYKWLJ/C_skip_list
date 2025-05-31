@@ -2,6 +2,19 @@
 #define UTILS_H_
 #include <stdlib.h>
 #include <stdio.h>
+
+/**
+ * filename:utils.h
+ * description: 状态模块
+ * author:EthanYankang
+ * create time:2025/05/31 22:26:03
+ */
+typedef enum Status_
+{
+    OK,
+    ERROR,
+    NOT_EXIST,
+} S_Status;
 /**
  * filename:utils.h
  * description: 命令行解析模块

@@ -4,29 +4,20 @@
  */
 void N_print_node(N_node node)
 {
-    printf("[key:%s,val:%s]\n", node->key, node->val);
+    printf("[key:%s,val:%s]\t", node->key, node->val);
 }
-N_node N_init_node(N_node node, int mod)
+N_node N_init_node(N_node node)
 {
     N_node ret = (N_node)checked_malloc(sizeof(*node));
     ret->key = (string)checked_malloc(sizeof(string) * 100);
     ret->val = (string)checked_malloc(sizeof(string) * 100);
-    switch (mod)
-    {
-    case 1:
-        /*指定k-v，先随便填充一个*/
-        sprintf(ret->key, "%s", "\\");
-        break;
-    case 0:
-        /*自动生成key，不会为负数的*/
-        sprintf(ret->key, "%d", rand());
-        break;
-    }
+    /*自动生成key，不会为负数的(如果指定为k-v，后面覆盖即可)*/
+    sprintf(ret->key, "%d", rand());
     ret->next = NULL;
     ret->pre = NULL;
     ret->down = NULL;
     sprintf(ret->val, "default_val");
-    N_print_node(ret);
+    // N_print_node(ret);
     return ret;
 }
 /**
@@ -35,8 +26,8 @@ N_node N_init_node(N_node node, int mod)
 D_delist D_init_delist(D_delist delist)
 {
     D_delist ret = (D_delist)checked_malloc(sizeof(*delist));
-    ret->L = N_init_node(NULL, 0);
-    ret->R = N_init_node(NULL, 0);
+    ret->L = N_init_node(NULL);
+    ret->R = N_init_node(NULL);
     ret->L->pre = NULL;
     ret->L->next = ret->R;
     ret->L->key = "HEAD"; // 首
@@ -65,7 +56,7 @@ void D_print_delist(D_delist delist)
  * func descp: 单层搜索
  */
 
-S_Status D_search(D_delist delist, C_command command)
+S_Status D_search(D_delist delist, O_OPERATION_NODE operation_node)
 {
     // hd \ -k xidian 等价于hd \ xidian
     // hd \ -v xidian
@@ -73,31 +64,35 @@ S_Status D_search(D_delist delist, C_command command)
     // LOG_PRINT("begin search %d", val);
     N_node node = delist->L->next;
     int pos = 0;
-    if (command->argc == 3 || (command->argc == 4 && strcmp(command->argv[2], "-k") == 0))
+    if (operation_node->operation_node_type == K)
     {
-        /*删除键对应数据节点*/
+        /*查找键对应数据节点*/
         while (strcmp(node->key, "TAIL"))
         {
             pos++;
-            if (strcmp(command->argv[3], node->key) == 0 /*核心点在与对比这里*/)
+            if (strcmp(operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key, node->key) == 0 /*核心点在与对比这里*/)
             {
                 printf("find [key:%s,val:%s] in delist, pos:%d\n", node->key, node->val, pos);
-                break;
+                // break;
+                exit(EXIT_SUCCESS);
             }
         }
+        printf("No data's key equals to %s\n", operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key);
     }
-    else if (command->argc == 4 && strcmp(command->argv[2], "-v") == 0)
+    else if (operation_node->operation_node_type == V)
     {
-        /*删除值对应数据节点*/
+        /*查找键对应数据节点*/
         while (strcmp(node->key, "TAIL"))
         {
             pos++;
-            if (strcmp(command->argv[3], node->val) == 0 /*核心点在与对比这里*/)
+            if (strcmp(operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value, node->val) == 0 /*核心点在与对比这里*/)
             {
                 printf("find [key:%s,val:%s] in delist, pos:%d\n", node->key, node->val, pos);
-                break;
+                // break;
+                exit(EXIT_SUCCESS);
             }
         }
+        printf("No data's value equals to %s\n", operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value);
     }
     // LOG_PRINT("end search %d", val);
     return OK;
@@ -106,61 +101,85 @@ S_Status D_search(D_delist delist, C_command command)
 /**
  * func descp: 单层插入(注意一定是有序的!)
  */
-S_Status D_insert(D_delist delist, C_command command)
+S_Status D_insert(D_delist delist, O_OPERATION_NODE operation_node)
 {
     LOG_PRINT("beign insert...");
     // 命令：hd + xidian
     N_node new_node;
-    if (command->argc == 3)
-    {
-        LOG_PRINT("argc=3  \t...");
-
-        /*隐式存储,显然只有一个val*/
-        new_node = N_init_node(NULL, 0);
-        sprintf(new_node->val, "%s", command->argv[2]);
-    }
-    else
+    if (operation_node->operation_node_type == K)
     {
         /*显示存储,有k-v，只取前两个argv[i]，后面的自动截断,并当kv个数大于2时提醒*/
-        new_node = N_init_node(NULL, 1);
-        sprintf(new_node->key, "%s", command->argv[2]);
-        sprintf(new_node->val, "%s", command->argv[3]);
-    }
-
-    /*开始遍历找到合适的位置*/
-    N_node node = delist->L->next;
-    while (strcmp(node->key, "TAIL"))
-    {
-        /*时间局部性，先加入的很可能被访问到，所以=时，将最新的放在前面*/
-        if (strcmp(node->key, command->argv[2]) >= 0)
+        new_node = N_init_node(NULL);
+        sprintf(new_node->key, "%s", operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.key);
+        sprintf(new_node->val, "%s", operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.value);
+        /*开始遍历找到合适的位置*/
+        N_node node = delist->L->next;
+        while (strcmp(node->key, "TAIL"))
         {
-            /*说明找到了合适的位置*/
+            /*时间局部性，先加入的很可能被访问到，所以=时，将最新的放在前面*/
+            if (strcmp(node->key, new_node->key) >= 0)
+            {
+                /*说明找到了合适的位置*/
+                N_node pre = node->pre;
+                pre->next = new_node;
+                new_node->pre = pre;
+                new_node->next = node;
+                node->pre = new_node;
+                break;
+            }
+        }
+        if (strcmp(node->key, "TAIL") == 0)
+        {
+            /*说明遍历到了尾部，直接插入尾部*/
             N_node pre = node->pre;
             pre->next = new_node;
             new_node->pre = pre;
             new_node->next = node;
             node->pre = new_node;
-            break;
         }
     }
-    if (strcmp(node->key, "TAIL") == 0)
+    else if (operation_node->operation_node_type == V)
     {
-        /*说明遍历到了尾部，直接插入尾部*/
-        N_node pre = node->pre;
-        pre->next = new_node;
-        new_node->pre = pre;
-        new_node->next = node;
-        node->pre = new_node;
+        /*隐式存储,显然只有一个val*/
+        new_node = N_init_node(NULL);
+        sprintf(new_node->val, "%s", operation_node->operation_node_data->operation_type_value->operation_value_data.insert_value_data.value);
+        /*开始遍历找到合适的位置*/
+        N_node node = delist->L->next;
+        while (strcmp(node->key, "TAIL"))
+        {
+            /*时间局部性，先加入的很可能被访问到，所以=时，将最新的放在前面*/
+            if (strcmp(node->val, new_node->val) >= 0)
+            {
+                /*说明找到了合适的位置*/
+                N_node pre = node->pre;
+                pre->next = new_node;
+                new_node->pre = pre;
+                new_node->next = node;
+                node->pre = new_node;
+                break;
+            }
+        }
+        if (strcmp(node->key, "TAIL") == 0)
+        {
+            /*说明遍历到了尾部，直接插入尾部*/
+            N_node pre = node->pre;
+            pre->next = new_node;
+            new_node->pre = pre;
+            new_node->next = node;
+            node->pre = new_node;
+        }
     }
-    LOG_PRINT("end insert...");
 
+    LOG_PRINT("end insert...");
+    // D_search(delist,operation_node);
+    D_print_delist(delist);
     return OK;
 }
 
 /**
  * func descp: 单层删除
  */
-S_Status D_delete(D_delist delist, C_command command)
+S_Status D_delete(D_delist delist, O_OPERATION_NODE operation_node)
 {
     // hd - -k xidian 等价于hd - xidian
     // hd - -v xidian
@@ -170,33 +189,82 @@ S_Status D_delete(D_delist delist, C_command command)
 
     N_node node = delist->L->next;
     int pos = 0;
-    if (command->argc == 3 || (command->argc == 4 && strcmp(command->argv[2], "-k") == 0))
+    if (operation_node->operation_node_type == K)
     {
         /*删除键对应数据节点*/
         while (strcmp(node->key, "TAIL"))
         {
             pos++;
-            if (strcmp(command->argv[3], node->key) == 0 /*核心点在与对比这里*/)
+            if (strcmp(operation_node->operation_node_data->operation_type_key->operation_key_data.delete_key_data.key, node->key) == 0 /*核心点在与对比这里*/)
             {
-                printf("find in val %s in delist, pos:%d, deleted!\n", node->val, pos);
+                N_print_node(node);
+                printf("pos:%d, deleted!\n", pos);
                 node->pre->next = node->next;
                 node->next->pre = node->pre;
                 break;
             }
         }
     }
-    else if (command->argc == 4 && strcmp(command->argv[2], "-v") == 0)
+    else if (operation_node->operation_node_type = V)
     {
         /*删除值对应数据节点*/
         while (strcmp(node->key, "TAIL"))
         {
             pos++;
-            if (strcmp(command->argv[3], node->val) == 0 /*核心点在与对比这里*/)
+            if (strcmp(operation_node->operation_node_data->operation_type_value->operation_value_data.delete_value_data.value, node->val) == 0 /*核心点在与对比这里*/)
             {
-                printf("find in val %s in delist, pos:%d, deleted!\n", node->val, pos);
+                N_print_node(node);
+                printf("pos:%d, deleted!\n", pos);
                 node->pre->next = node->next;
                 node->next->pre = node->pre;
                 break;
+            }
+        }
+    }
+    // LOG_PRINT("end search %d", val);
+    return OK;
+}
+
+/**
+ * func descp: 单层修改
+ */
+S_Status D_update(D_delist delist, O_OPERATION_NODE operation_node)
+{
+    // hd - -k xidian 等价于hd - xidian
+    // hd - -v xidian
+    // 分别对应了删除键、删除值的情况
+    // 默认为删除键
+    // LOG_PRINT("begin search %d", val);
+
+    N_node node = delist->L->next;
+    int pos = 0;
+    if (operation_node->operation_node_type == K)
+    {
+        /*删除键对应数据节点*/
+        while (strcmp(node->key, "TAIL"))
+        {
+            pos++;
+            if (strcmp(operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.key, node->key) == 0 /*核心点在与对比这里*/)
+            {
+                N_print_node(node);
+                printf("pos:%d, update!\n", pos);
+                sprintf(node->val, operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.value);
+                exit(EXIT_SUCCESS);
+            }
+        }
+    }
+    else if (operation_node->operation_node_type = V)
+    {
+        /*删除值对应数据节点*/
+        while (strcmp(node->key, "TAIL"))
+        {
+            pos++;
+            if (strcmp(operation_node->operation_node_data->operation_type_value->operation_value_data.delete_value_data.value, node->val) == 0 /*核心点在与对比这里*/)
+            {
+                N_print_node(node);
+                printf("pos:%d, update!\n", pos);
+                sprintf(node->val, operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.value);
+                exit(EXIT_SUCCESS);
             }
         }
     }

@@ -5,6 +5,7 @@
  * create time:2025/05/30 13:59:09
  */
 // #include "utils.h"
+#include "../include.h"
 #ifndef DELIST_H_
 #define DELIST_H_
 #include <string.h>
@@ -33,19 +34,15 @@ typedef struct delist_
     // N_node
 } *D_delist;
 
-typedef enum Status_
-{
-    OK,
-    ERROR,
-    NOT_EXIST,
-} S_Status;
+
 
 D_delist D_init_delist(D_delist delist);
-N_node N_init_node(N_node node, int mod);
+N_node N_init_node(N_node node);
 void D_print_delist(D_delist delist);
-S_Status D_search(D_delist delist, C_command command);
-S_Status D_insert(D_delist delist, C_command command);
-S_Status D_delete(D_delist delist, C_command command);
+S_Status D_search(D_delist delist, O_OPERATION_NODE operation_node);
+S_Status D_insert(D_delist delist, O_OPERATION_NODE operation_node);
+S_Status D_delete(D_delist delist, O_OPERATION_NODE operation_node);
+S_Status D_update(D_delist delist, O_OPERATION_NODE operation_node);
 
 // S_Status D_delete(D_delist list,int val);
 
