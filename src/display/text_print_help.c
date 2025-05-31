@@ -375,7 +375,7 @@ void text_print_head0_blank1(const char **str[], int columns_num)
     printf("%s\n", BORDER_PLUS);
 }
 
-void text_print_head0_blank0(char **str[], int columns_num)
+void text_print_head0_blank0(const char **str[], int columns_num)
 {
     setlocale(LC_ALL, ""); // 设置本地化，支持宽字符
     // LOG_PRINT("text_print_help_all 1 passed!");

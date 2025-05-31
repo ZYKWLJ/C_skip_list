@@ -82,6 +82,9 @@
         "test.h": "c",
         "utils.h": "c",
         "locale.h": "c",
-        "delist.h": "c"
+        "delist.h": "c",
+        "skiplist.h": "c",
+        "statistics.h": "c",
+        "operation.h": "c"
     }
 }

@@ -1,5 +1,60 @@
 #include "../../include/include.h"
 
+/**
+ * func descp: 命令行解析模块
+ */
+C_command C_command_init(C_command c, int argc, char **argv)
+{
+    C_command command = (C_command)checked_malloc(sizeof(*c));
+    command->argc = argc;
+    command->argv = argv;
+    return command;
+}
+void C_command_print(C_command command)
+{
+    printf("argc: %d\n", command->argc);
+    for (int i = 0; i < command->argc; i++)
+    {
+        printf("argv[%d]: %s\n", i, command->argv[i]);
+    }
+}
+
+void COMMAND_ERROR(C_command command, const char *format, ...)
+{
+    /**
+     * func descp: 方式第一个命令是全路径的可执行文件，这里直接使用tl替换之，确保win和linux的兼容性
+     */
+    // // if (strcmp(setting->color->value_set, "on") == 0)
+    // if (color_enabled())
+    // {
+    //     RED_PRINT("hd");
+    //     for (int i = 1 /*直接从第一个开始，兼容性*/; i < command->argc; i++)
+    //     {
+    //         RED_PRINT(" %s", command->argv[i]);
+    //     }
+    // }
+    // else
+    // {
+    printf("hd");
+    for (int i = 1 /*直接从第一个开始，兼容性*/; i < command->argc; i++)
+    {
+        printf(" %s", command->argv[i]);
+    }
+    // }
+
+    va_list args;
+    va_start(args, format);
+
+    // 输出格式化的错误信息
+    vprintf(format, args);
+    printf("\n");
+
+    va_end(args);
+}
+
+/**
+ * func descp: 内存分配模块
+ */
 void *checked_malloc(size_t len)
 {
     void *p = calloc(1, len); // 分配len这么大小的空间，并初始化为0

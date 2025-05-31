@@ -1,11 +1,5 @@
 #ifndef TEST_H_
 #define TEST_H_
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-// #include "display\text_print_help.h"
-
-void statistics(int *total, int arrlen);
+void test_delist(D_delist delist);
 
 #endif /* TEST_H_ */

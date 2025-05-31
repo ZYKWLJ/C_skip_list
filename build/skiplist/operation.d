@@ -1,4 +1,4 @@
-build\main.o: D:\1code\C_skip_list\src\main.c \
+build\skiplist\operation.o: D:\1code\C_skip_list\src\skiplist\operation.c \
  D:/1code/C_skip_list/include/include.h \
  D:/1code/C_skip_list/include/utils/utils.h \
  D:/1code/C_skip_list/include/utils/statistics.h \

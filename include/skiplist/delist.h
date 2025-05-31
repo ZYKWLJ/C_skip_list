@@ -10,16 +10,17 @@
 #include <string.h>
 #include <time.h>
 typedef char *string;
+#define MAX_LEVEL 10 // 最大层级数
 
 /*每一个节点就是一个网络点，有上下左右的四个触手*/
 typedef struct node_
 {
     struct node_ *pre;
     struct node_ *next;
-    struct node_ *up;   // 向上的指针,用于插入、删除
-    struct node_ *down; // 向下的指针,用于查找
-    int key;
+    struct node_ *down; // 向下的指针，足够了,最后一层向下的指针为NULL即可
+    string key;
     string val;
+
 } *N_node;
 
 /**
@@ -32,12 +33,6 @@ typedef struct delist_
     // N_node
 } *D_delist;
 
-typedef struct skipList_
-{
-    D_delist delist; // 本身具有横向功能
-
-} *L_skipList;
-
 typedef enum Status_
 {
     OK,
@@ -45,13 +40,15 @@ typedef enum Status_
     NOT_EXIST,
 } S_Status;
 
-D_delist D_init_list(D_delist list);
-N_node D_init_node(N_node node);
-void D_print_list(D_delist list);
-S_Status D_search(D_delist list, string val);
-S_Status D_insert(D_delist list, string val);
-S_Status D_delete(D_delist list, string val);
+D_delist D_init_delist(D_delist delist);
+N_node N_init_node(N_node node, int mod);
+void D_print_delist(D_delist delist);
+S_Status D_search(D_delist delist, C_command command);
+S_Status D_insert(D_delist delist, C_command command);
+S_Status D_delete(D_delist delist, C_command command);
+
 // S_Status D_delete(D_delist list,int val);
+
 int D_get_random_level();
 
 #endif /* DELIST_H_ */
@@ -65,7 +62,14 @@ int D_get_random_level();
 每一级节点，如果后面的节点key比目标的节点小，那么就后移，如果比目标的key大，那么就下沉。
 直至下沉到到最底层。还是没有就说明不存在数据库中。
 
-插入：从底层开始，找到第一个比他大的数，插在他的前面。那如何确定他的层数呢？
-可以通过抛硬币的方式来确定，这样元素出现在上一层的概率为50%，这是二分查找的核心！。
+插入：找到数据的层级，然后对这个层级之下的所有层，找到第一个比该数据key大的数，在他的前面插入，如果没有，就在末尾插入。
+查找：从第一层开始，如果后面的节点key比目标的节点小，那么就后移，如果比目标的key大，那么就下沉。直至下沉到到最底层。还是没有就说明不存在数据库中。
+删除：先查找数据的层级，然后删除这个层级之下的所有层的该数据(下面所有层级都有)。
+修改：先查找数据的层级，然后修改这个层级之下的所有层的该数据(下面所有层级都有)。
+打印：下沉到第一层，直接打印数据。
+
+// 所有本质上来说，只有从上往下的指针，没有从下往上的指针，并且数据量巨大时，指针也挺耗费内存，不值得。
+
+如果要打印全部数据的话，就直接跳转到第一层，直接打印就好了！
 
 */
