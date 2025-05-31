@@ -7,17 +7,20 @@
 #include "utils.h"
 #ifndef DELIST_H_
 #define DELIST_H_
-
+#include <string.h>
+#include<time.h>
+typedef char *string;
 typedef struct node_
 {
     struct node_ *pre;
     struct node_ *next;
-    int val;
+    int key;
+    string val;
 } *N_node;
 
 /**
-* data descp: 双向链表只记录两边就可以了
-*/
+ * data descp: 双向链表只记录两边就可以了
+ */
 typedef struct delist_
 {
     N_node L;
@@ -35,9 +38,9 @@ typedef enum Status_
 D_delist D_init_list(D_delist list);
 N_node D_init_node(N_node node);
 void D_print_list(D_delist list);
-S_Status D_search(D_delist list, int val);
-S_Status D_insert(D_delist list, int val);
-S_Status D_delete(D_delist list, int val);
+S_Status D_search(D_delist list, string val);
+S_Status D_insert(D_delist list, string val);
+S_Status D_delete(D_delist list, string val);
 // S_Status D_delete(D_delist list,int val);
 
 #endif /* DELIST_H_ */
