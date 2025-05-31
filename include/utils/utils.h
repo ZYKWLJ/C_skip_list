@@ -2,12 +2,40 @@
 #define UTILS_H_
 #include <stdlib.h>
 #include <stdio.h>
+
+/**
+ * filename:utils.h
+ * description: 状态模块
+ * author:EthanYankang
+ * create time:2025/05/31 22:26:03
+ */
+typedef enum Status_
+{
+    OK,
+    ERROR,
+    NOT_EXIST,
+} S_Status;
+/**
+ * filename:utils.h
+ * description: 命令行解析模块
+ * author:EthanYankang
+ * create time:2025/05/31 16:34:31
+ */
+typedef struct C_command_
+{
+    int argc;
+    char **argv;
+} *C_command;
+
+C_command C_command_init(C_command command, int argc, char **argv);
+void C_command_print(C_command command);
+void COMMAND_ERROR(C_command command, const char *format, ...);
+
 /**
  * description: 日志模块
  * author:EthanYankang
  * create time:2025/05/01 14:41:31
  */
-
 #define LOG
 #ifdef LOG
 // #define LOG_PRINT(msg) printf("[LOG %s %s %s:%d] %s\n" __DATE__, __TIME__, __FILE__, __LINE__, msg)
@@ -29,7 +57,7 @@
  * create time:2025/05/01 14:42:08
  */
 
-// #define TODO
+#define TODO
 #ifdef TODO
 #define TODO_PRINT(...)                                                    \
     printf("[TODO %s %s %s:%d] ", __DATE__, __TIME__, __FILE__, __LINE__); \

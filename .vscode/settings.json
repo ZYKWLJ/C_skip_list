@@ -78,6 +78,16 @@
         "week_month_task.h": "c",
         "help.h": "c",
         "text_print_help.h": "c",
-        "text_display_width.h": "c"
+        "text_display_width.h": "c",
+        "test.h": "c",
+        "utils.h": "c",
+        "locale.h": "c",
+        "delist.h": "c",
+        "skiplist.h": "c",
+        "statistics.h": "c",
+        "operation.h": "c",
+        "stdio.h": "c",
+        "parser.h": "c",
+        "exec.h": "c"
     }
 }

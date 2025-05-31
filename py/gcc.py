@@ -11,7 +11,7 @@ SOURCE_DIR = "src"
 INCLUDE_DIR = "include"  # 头文件目录
 BUILD_DIR = "build"
 BIN_DIR = "bin"
-EXECUTABLE = "tl"
+EXECUTABLE = "hd"
 
 def ensure_dirs():
     """确保所有需要的目录存在"""
@@ -231,3 +231,24 @@ if __name__ == "__main__":
     # 运行编译流程
     if not compile_project():
         sys.exit(1)
+     # 获取当前脚本所在目录的上层目录
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    current_dir = os.path.join(current_dir, '..')
+    
+    # 构造可执行文件路径：../BIN_DIR/EXECUTABLE
+    executable_path = os.path.join(current_dir, BIN_DIR)
+    
+    # 确保路径正确（示例输出：../bin/sk）
+    print(f"可执行文件路径: {executable_path}")
+    
+    if os.path.exists(executable_path):
+        print("\n正在执行可执行文件...")
+        # 兼容不同系统的路径格式（Windows使用反斜杠，Linux/macOS使用正斜杠）
+        if sys.platform == "win32":
+            os.system(f'"{executable_path.replace("/", "\\")}"')  # Windows路径转换
+            print(f"\n正在执行可执行文件...{executable_path}\\{EXECUTABLE}.exe")            
+            os.system(f"{executable_path+"\\"+EXECUTABLE}.exe")  # Windows下可执行文件通常为 sk.exe
+        else:
+            os.system(f'"{executable_path}"')
+    else:
+        print(f"错误：可执行文件路径未找到 - {executable_path}")
