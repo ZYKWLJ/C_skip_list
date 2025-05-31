@@ -8,7 +8,7 @@
 #ifndef DELIST_H_
 #define DELIST_H_
 #include <string.h>
-#include<time.h>
+#include <time.h>
 typedef char *string;
 typedef struct node_
 {
@@ -28,6 +28,12 @@ typedef struct delist_
     // N_node
 } *D_delist;
 
+typedef struct skipList_
+{
+    D_delist delist; // 本身具有横向功能
+
+} *L_skipList;
+
 typedef enum Status_
 {
     OK,
@@ -44,3 +50,15 @@ S_Status D_delete(D_delist list, string val);
 // S_Status D_delete(D_delist list,int val);
 
 #endif /* DELIST_H_ */
+
+/*
+1                            10
+1      2                     10
+1      2  3                  10
+1      2  3  4               10
+
+每一级节点，如果后面的节点key比目标的节点小，那么就后移，如果比目标的key大，那么就下沉。
+直至下沉到到最底层。还是没有就说明不存在数据库中。
+
+
+*/
