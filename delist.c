@@ -27,10 +27,10 @@ D_delist D_init_list(D_delist list)
 void D_print_list(D_delist list)
 {
     N_node node = list->L->next;
-    printf("begin->");
+    printf("begin->\n");
     while (node->key != -2)
     {
-        printf("[key:%d,val:%s]->", node->key, node->val);
+        printf("[key:%d,val:%s]->\n", node->key, node->val);
         node = node->next;
     }
     printf("end\n");
@@ -72,6 +72,23 @@ S_Status D_insert(D_delist list, string val)
 
 S_Status D_delete(D_delist list, string val)
 {
+
+    // LOG_PRINT("begin search %d", val);
+    N_node node = list->L->next;
+    int pos = 0;
+    while (node->key != -2)
+    {
+        // LOG_PRINT("node val: %d", node->val);
+        pos++;
+        if (strcmp(val, node->val) == 0)
+        {
+            printf("find in val %s in delist, pos:%d, deleted!\n", val, pos);
+            node->pre->next = node->next;
+            node->next->pre = node->pre;
+        }
+        node = node->next;
+    }
+    // LOG_PRINT("end search %d", val);
 
     return OK;
 }

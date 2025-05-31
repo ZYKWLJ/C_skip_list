@@ -23,11 +23,22 @@ int main()
             char dest[100];
             sprintf(dest, "value-%d", i);
             // LOG_PRINT("%s",dest);
-            D_insert(delist, strdup(dest));//注意这里需要使用单独开辟的字符地址,因为传入的是地址，防止指向相同
+            D_insert(delist, strdup(dest)); // 注意这里需要使用单独开辟的字符地址,因为传入的是地址，防止指向相同
         }
     }
-    LOG_PRINT("3 passed!");
-
     D_print_list(delist);
+    LOG_PRINT("3 passed!\n\n\n");
+
+    /*test delete*/
+    {
+        D_delist delist1 = D_init_list(NULL);
+        D_insert(delist1, "xidian");
+        D_insert(delist1, "university");
+        D_insert(delist1, "Ethan");
+        D_insert(delist1, "xidian");
+        D_print_list(delist1);
+        D_delete(delist1, "xidian");
+        D_print_list(delist1);
+    }
     return 0;
 }
