@@ -1,4 +1,5 @@
-#include "delist.h"
+#include "../../include/include.h"
+
 N_node D_init_node(N_node node)
 {
     N_node ret = (N_node)checked_malloc(sizeof(*node));
@@ -91,4 +92,21 @@ S_Status D_delete(D_delist list, string val)
     // LOG_PRINT("end search %d", val);
 
     return OK;
+}
+#define MAX_LEVEL 10
+int D_get_random_level()
+{
+    int a = 1;
+    int level = 0;
+    while (a) // 第一层是肯定能进来的
+    {
+        level++;
+        a = rand() % 2;
+        if(level>MAX_LEVEL){
+            level=MAX_LEVEL;
+            break;
+        }
+    }
+    // printf("level=%d\n", level);
+    return level;
 }

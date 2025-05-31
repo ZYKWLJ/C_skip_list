@@ -1,5 +1,5 @@
-#include "delist.h"
-#include "utils.h"
+#include "../include/include.h"
+
 
 int main()
 {
@@ -39,6 +39,20 @@ int main()
         D_print_list(delist1);
         D_delete(delist1, "xidian");
         D_print_list(delist1);
+    }
+    /*test level*/
+    {
+        int total[10] = {0};
+        for (int i = 0; i < 100000; i++)
+        {
+            total[D_get_random_level() - 1]++;
+        }
+        for (int i = 0; i < 10; i++)
+        {
+            printf("level %d: %d\n", i, total[i]);
+        }
+        printf("size=%d\n\n", sizeof(total) / sizeof(total[0]));
+        statistics(total, sizeof(total) / sizeof(total[0]));
     }
     return 0;
 }

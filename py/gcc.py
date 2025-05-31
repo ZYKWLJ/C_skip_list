@@ -11,7 +11,7 @@ SOURCE_DIR = "src"
 INCLUDE_DIR = "include"  # 头文件目录
 BUILD_DIR = "build"
 BIN_DIR = "bin"
-EXECUTABLE = "tl"
+EXECUTABLE = "sk"
 
 def ensure_dirs():
     """确保所有需要的目录存在"""
