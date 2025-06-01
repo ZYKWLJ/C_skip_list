@@ -88,6 +88,10 @@
         "operation.h": "c",
         "stdio.h": "c",
         "parser.h": "c",
-        "exec.h": "c"
+        "exec.h": "c",
+        "stdlib.h": "c",
+        "errno.h": "c",
+        "fcntl.h": "c",
+        "save_data_to_disk.h": "c"
     }
 }

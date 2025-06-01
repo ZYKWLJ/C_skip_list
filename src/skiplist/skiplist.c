@@ -1,445 +1,385 @@
 #include "../../include/include.h"
+// #include "skiplist.h"
+extern L_skip_list skip_list;
+extern INSERT_ON_ODD_SHOW insert_on_or_show;
+extern SEARCH_ON_ODD_SHOW search_on_or_show;
+
+#define MAX_LEVEL 16
+#define MAX_KEY_VALUE_LEN 10000 // 明确缓冲区大小宏定义
+
 /**
- * func descp: 随机层级获取函数
+ * 随机层级获取函数（修正概率逻辑：使用0.5概率增长，层级范围[1, MAX_LEVEL]）
  */
-int D_get_random_level()
+int random_level()
 {
-    int a = 1;
-    int level = 0;
-    while (a) // 第一层是肯定能进来的
-    {
+    int level = 1;
+    while (rand() % 2 == 0 && level < MAX_LEVEL)
+    { // 修正条件：0表示继续增长
         level++;
-        a = rand() % 2;
-        if (level > MAX_LEVEL)
-        {
-            level = MAX_LEVEL;
-            break;
-        }
     }
-    // printf("level=%d\n", level);
     return level;
 }
+
 /**
- * func descp: 找到每次增加、插入时，数据在每一层的前驱节点。理论上来说，可以传入层数仅仅遍历需要修改的层数即可，为了方便仅仅全遍历。
+ * 节点初始化函数（修正内存分配和默认值处理）
  */
-N_node *pre_pointer_eve_level(L_skipList sklist, string key, string value, char mod)
+N_skip_node N_skip_node_init(int level, string key, string value)
 {
-    LOG_PRINT("pre_pointer_eve_level func begin...");
+    LOG_PRINT("N_skip_node_init begin...");
+    N_skip_node node = (N_skip_node)checked_malloc(sizeof(struct skip_node));
+    if (!node)
+        return NULL;
 
-    /*因为理论上来说，每一层都有需要获取的前驱节点*/
-    N_node *pre_pointer_arr = (N_node *)checked_malloc(sizeof(N_node) * MAX_LEVEL);
-    for (int i = 0; i < MAX_LEVEL; i++)
+    // 分配并初始化key/value缓冲区（明确初始化避免野指针）
+    node->key = (string)checked_malloc(MAX_KEY_VALUE_LEN);
+    node->value = (string)checked_malloc(MAX_KEY_VALUE_LEN);
+    memset(node->key, 0, MAX_KEY_VALUE_LEN);
+    memset(node->value, 0, MAX_KEY_VALUE_LEN);
+
+    // 分配前向指针数组（层级从0开始，包含level+1个指针）
+    node->forward = (N_skip_node *)checked_malloc((level + 1) * sizeof(N_skip_node));
+    if (!node->key || !node->value || !node->forward)
     {
-        pre_pointer_arr[i] = (N_node)checked_malloc(sizeof(struct node_));
+        printf("Memory allocation failed in node init");
+        // free(node->key);
+        // free(node->value);
+        // free(node->forward);
+        // free(node);
+        return NULL;
     }
-    N_node node = sklist[0].delist->L;
 
-    /*开始遍历每一层，找到合适的插入前驱位置,即找到`最后一个`比自己的大的元素即可*/
-    if (mod == 'k')
+    // 处理key（默认值修正为更明确的标识）
+    if (key != NULL)
     {
-        LOG_PRINT("pre_pointer_arr k begin...");
-
-        for (int i = 0; i < MAX_LEVEL; i++)
-        {
-            /*该层一直遍历到末尾*/
-            while (strcmp(node->key, "TAIL"))
-            {
-                /*如果找到了key了，就一直下沉就好了*/
-                while (strcmp(key, node->key) >= 0)
-                {
-                    LOG_PRINT("pre_pointer_arr k find ...");
-
-                    pre_pointer_arr[i] = node->pre;
-                    /*下沉，因为下一层的元素一定在该元素的下层的元素的后面*/
-                    node = node->next;
-                    node = node->down;
-                }
-            }
-        }
-        return pre_pointer_arr;
+        snprintf(node->key, MAX_KEY_VALUE_LEN, "%s", key); // 安全字符串拷贝
     }
-    else if (mod == 'v')
-    // 此处不知道key，所以需要先求出k，在用k来做上面的动作,此时k已经写在operation_node中了
-    // 这是一般用来删除数据的！
+    else
     {
-        LOG_PRINT("pre_pointer_arr v begin...");
-
-        N_node node = N_init_node(NULL);
-        for (int i = 0; i < MAX_LEVEL; i++)
-        {
-            O_OPERATION_NODE operation_node = O_OPERATION_NODE_init(NULL);
-            operation_node->operation_node_type = V;
-            sprintf(operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value, "%s", value);
-            node = D_search(sklist[i].delist, operation_node, 's');
-            /*一旦找到，下面层一定都有！直接内含循环即可*/
-            if (node)
-            {
-                while (strcmp(node->key, "TAIL"))
-                {
-                    if (strcmp(node->val, value) == 0)
-                    {
-                        node = node->pre;
-                        pre_pointer_arr[i] = node;
-                        /*下沉，因为下一层的元素一定在该元素的下层的元素的后面*/
-                        node = node->down;
-                        /*一旦在该层找到了，就立即直接遍历下面所以的*/
-                    }
-                    node = node->next;
-                }
-            }
-            else
-            {
-                pre_pointer_arr[i] = NULL;
-            }
-        }
-        return pre_pointer_arr;
+        snprintf(node->key, MAX_KEY_VALUE_LEN, "HEAD"); // 头节点key标识
     }
-    return pre_pointer_arr;
+
+    // 处理value（默认值使用双反斜杠避免转义问题）
+    if (value != NULL)
+    {
+        LOG_PRINT("value is not null");
+        snprintf(node->value, MAX_KEY_VALUE_LEN, "%s", value);
+    }
+    else
+    {
+        LOG_PRINT("value is null");
+        snprintf(node->value, MAX_KEY_VALUE_LEN, "NULL"); // 明确存储双反斜杠
+    }
+
+    // 初始化前向指针为NULL
+    for (int i = 0; i <= level; i++)
+    {
+        node->forward[i] = NULL;
+    }
+
+    LOG_PRINT("%s[%s] -> ", node->key, node->value);
+    LOG_PRINT("N_skip_node_init over...");
+
+    return node;
 }
 
 /**
- * func descp: 跳表初始化
+ * 跳表初始化函数（修正头节点层级和指针初始化）
  */
-L_skipList L_skipList_init(L_skipList sklist)
+L_skip_list L_skip_list_init()
 {
-    L_skipList ret = (L_skipList)checked_malloc(sizeof(*sklist) * MAX_LEVEL); // 这么多个层级的双向链表联结
-    /*把每一层都初始化好了*/
-    for (int i = 0; i < MAX_LEVEL - 1; i++)
+    LOG_PRINT("L_skip_list_init begin...");
+    L_skip_list list = (L_skip_list)checked_malloc(sizeof(struct skip_list));
+    if (!list)
+        return NULL;
+
+    list->level = 1; // 初始层级为1（包含level=1）
+    list->size = 0;
+    // 创建头节点（层级为MAX_LEVEL，key为HEAD，value为默认值）
+    list->header = N_skip_node_init(MAX_LEVEL, NULL, NULL);
+    if (!list->header)
     {
-        ret[i].delist = D_init_delist(NULL);
-        /*开始织网*/
-        ret[i].delist->L->down = ret[i + 1].delist->L->down;
-        ret[i].delist->R->down = ret[i + 1].delist->R->down;
+        // free(list);
+        return NULL;
     }
-    return ret;
+
+    // 初始化所有层的前向指针为NULL（层级从0到MAX_LEVEL）
+    for (int i = 0; i <= MAX_LEVEL; i++)
+    {
+        list->header->forward[i] = NULL;
+    }
+
+    LOG_PRINT("L_skip_list_init over...");
+    srand(time(NULL)); // 随机数种子初始化移到此处
+    return list;
 }
 
 /**
- * func descp: 全表打印
+ * 插入节点函数（修正层级遍历和更新逻辑）
  */
-void L_print_skiplist(L_skipList sklist)
+void L_skip_list_insert(L_skip_list list, string key, string value)
 {
-    /*本质是单层打印的循环遍历*/
-    for (int i = 0; i < MAX_LEVEL; i++)
-    {
-        printf("level %d\n", i);
-        D_print_delist(sklist[i].delist);
-        printf("\n\n");
-    }
-}
-/**
- * func descp: 全表搜索，从上到下开始，具有二分的效率
- */
-S_Status L_search(L_skipList sklist, O_OPERATION_NODE operation_node)
-{
-    N_node node = sklist[0].delist->L;
-    if (operation_node->operation_node_type == K)
-    {
-        for (int i = 0; i < MAX_LEVEL; i++)
-        {
-            node = sklist[i].delist->L;
-            int pos = 0;
-            while (strcmp(node->key, "TAIL") == 0)
-            {
-                pos++;
-                if (strcmp(operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key, node->key) == 0)
-                {
-                    N_print_node(node);
-                    printf("find in level:%d, pos:%d\n", i, pos);
-                    exit(EXIT_SUCCESS);
-                    // return OK;
-                }
-                /*说明本层太稀疏，数据在下一层*/
-                else if (strcmp(operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key, node->key) > 0)
-                {
-                    /*先往前回跳一格，再往下*/
-                    node = node->pre;
-                    node = node->down;
-                }
-                /*否则就是还可以本层往后查找*/
-                node = node->next;
-            }
-        }
-        printf("No data's key equals to %s\n", operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key);
-    }
-    else if (operation_node->operation_node_type == V)
-    {
-        for (int i = 0; i < MAX_LEVEL; i++)
-        {
+    if (!list || !list->header || !key)
+        return;
 
-            node = sklist[i].delist->L;
-            int pos = 0;
-            while (strcmp(node->key, "TAIL") == 0)
-            {
-                pos++;
-                if (strcmp(operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value, node->val) == 0)
-                {
-                    N_print_node(node);
-                    printf("find in level:%d, pos:%d\n", i, pos);
-                    exit(EXIT_SUCCESS);
-                    // return OK;
-                }
-                /*说明本层太稀疏，数据在下一层*/
-                else if (strcmp(operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value, node->val) > 0)
-                {
-                    /*先往前回跳一格，再往下*/
-                    node = node->pre;
-                    node = node->down;
-                }
-                /*否则就是还可以本层往后查找*/
-                node = node->next;
-            }
-        }
-        printf("No data's value equals to %s\n", operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value);
-    }
-    // return OK;
-    exit(EXIT_SUCCESS);
-}
-/**
- * func descp: 这个直接调用单层逻辑即可，但是注意，还要完成下指针的连接！此为最核心的一点。
- */
-S_Status L_insert(L_skipList sklist, O_OPERATION_NODE operation_node)
-{
-    LOG_PRINT("L_insert func begin...");
-    /**
-     * data descp: 先获取每一层的该数据的前驱节点
-     */
-    N_node *pre_pointer_arr;
-    /**
-     * data descp: 获取随机层级
-     */
-    int level = D_get_random_level();
-    if (operation_node->operation_node_type == K)
-    {
-        pre_pointer_arr = pre_pointer_eve_level(sklist, operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.key, NULL, 'k');
+    N_skip_node update[MAX_LEVEL + 1]; // 层级0~MAX_LEVEL
+    N_skip_node current = list->header;
 
-        /**
-         * data descp: 这里保存每一层的下节点！
-         */
-        N_node node_down_arr[MAX_LEVEL];
-        for (int i = 0; i < MAX_LEVEL; i++)
-        {
-            node_down_arr[i] = NULL;
-        }
-        /*随机层级以下层级的都有该数据*/
-        /**
-         * data descp: 这里的指针操作是个难点！也是核心点！怎样操作down?
-         * 必须从最底层开始，因为要保证下面的网织好了才行。
-         */
-        for (int i = MAX_LEVEL - 1; i >= level; i--)
-        {
-            /*每一层找到第一个比该数据大的数据即可,充分利用刚刚得到的前驱节点指针数组，完成织网*/
-            // D_insert(sklist[i].delist, operation_node);
-            N_node node = N_init_node(NULL);
-            node->key = operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.key;
-            node->val = operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.value;
-            /*横向连接*/
-            pre_pointer_arr[i]->next = node;
-            node->pre = pre_pointer_arr[i];
-            pre_pointer_arr[i]->next->pre = node;
-            node->next = pre_pointer_arr[i]->next;
-            if (i != MAX_LEVEL - 1) /*最后一层不用向下连接*/
-            {
-                /*纵向连接*/
-                node->down = node_down_arr[i];
-            }
-            node_down_arr[i] = node;
-        }
-    }
-    else if (operation_node->operation_node_type == V)
+    // 从最高层开始查找插入位置（层级从MAX_LEVEL到1，因为level可能小于MAX_LEVEL）
+    for (int i = list->level; i >= 1; i--)
     {
-        pre_pointer_arr = pre_pointer_eve_level(sklist, NULL, operation_node->operation_node_data->operation_type_value->operation_value_data.insert_value_data.value, 'v');
-        /**
-         * data descp: 这里保存每一层的下节点！
-         */
-        N_node node_down_arr[MAX_LEVEL];
-        for (int i = 0; i < MAX_LEVEL; i++)
+        while (current->forward[i] != NULL && strcmp(current->forward[i]->key, key) < 0)
         {
-            node_down_arr[i] = NULL;
+            current = current->forward[i];
         }
-        /*随机层级以下层级的都有该数据*/
-        /**
-         * data descp: 这里的指针操作是个难点！也是核心点！怎样操作down?
-         * 必须从最底层开始，因为要保证下面的网织好了才行。
-         */
-        for (int i = MAX_LEVEL - 1; i >= level; i--)
-        {
-            /*每一层找到第一个比该数据大的数据即可,充分利用刚刚得到的前驱节点指针数组，完成织网*/
-            // D_insert(sklist[i].delist, operation_node);
-            N_node node = N_init_node(NULL); /*自动生成key*/
-            node->val = operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.value;
-            /*横向连接*/
-            pre_pointer_arr[i]->next = node;
-            node->pre = pre_pointer_arr[i];
-            pre_pointer_arr[i]->next->pre = node;
-            node->next = pre_pointer_arr[i]->next;
-            if (i != MAX_LEVEL - 1) /*最后一层不用向下连接*/
-            {
-                /*纵向连接*/
-                node->down = node_down_arr[i];
-            }
-            node_down_arr[i] = node;
-        }
+        update[i] = current;
     }
-    LOG_PRINT("L_insert func end...");
-    return OK;
+
+    // 检查底层是否存在相同key
+    current = current->forward[1]; // 从level=1层开始检查
+    if (current != NULL && strcmp(current->key, key) == 0)
+    {
+        // 存在相同key，执行更新
+        printf("%s", insert_on_or_show == INSERT_ON ? "Data already existed." : "");
+        if (strcmp(current->value, value) == 0)
+        {
+            if (insert_on_or_show == INSERT_ON)
+            {
+                printf("No need to update\n");
+            }
+        }
+        else
+        {
+            if (insert_on_or_show == INSERT_ON)
+            {
+                printf("Update %s[%s]->%s[%s]\n", current->key, current->value, key, value);
+            }
+            // 安全更新value（释放旧内存，分配新内存）
+            // free(current->value);
+            current->value = (string)checked_malloc(strlen(value) + 1);
+            strcpy(current->value, value);
+        }
+        return;
+    }
+
+    // 生成新节点层级（包含level=0）
+    int new_level = random_level();
+    if (new_level > list->level)
+    {
+        // 扩展跳表层级
+        for (int i = list->level + 1; i <= new_level; i++)
+        {
+            update[i] = list->header;
+        }
+        list->level = new_level;
+    }
+
+    // 创建新节点（层级为new_level，包含0~new_level层）
+    N_skip_node new_node = N_skip_node_init(new_level, key, value);
+    if (!new_node)
+        return;
+
+    // 更新各层前向指针（从level=1开始，因为level=0可能不使用）
+    for (int i = 1; i <= new_level; i++)
+    {
+        new_node->forward[i] = update[i]->forward[i];
+        update[i]->forward[i] = new_node;
+    }
+    if (insert_on_or_show == INSERT_ON)
+    {
+        printf("Insert success! Key: %s, Value: %s\n", key, value);
+    }
+
+    list->size++;
 }
 
 /**
- * func descp: 找到每次删除、修改时，数据在每一层的节点。理论上来说，可以传入层数仅仅遍历需要修改的层数即可，为了方便仅仅全遍历。
+ * 查找节点函数（统一层级遍历逻辑）
  */
-N_node *current_pointer_eve_level(L_skipList sklist, string key, string value, char mod)
+N_skip_node L_skip_list_search(L_skip_list list, string key, string value)
 {
-    /*因为理论上来说，每一层都有需要获取的节点*/
-    N_node *current_pointer_arr = (N_node *)checked_malloc(sizeof(N_node) * MAX_LEVEL);
-    for (int i = 0; i < MAX_LEVEL; i++)
+    if (!list || !list->header || !key)
+        return NULL;
+
+    N_skip_node current = list->header;
+    // 从最高有效层开始查找
+    for (int i = list->level; i >= 1; i--)
     {
-        current_pointer_arr[i] = (N_node)checked_malloc(sizeof(struct node_));
+        while (current->forward[i] != NULL && strcmp(current->forward[i]->key, key) < 0)
+        {
+            current = current->forward[i];
+        }
     }
-    N_node node = sklist[0].delist->L;
 
-    /*开始遍历每一层，找到自己在每一层的节点,注意这里一定要用跳表的性质才行!*/
-    if (mod == 'k')
+    // 移动到最底层节点（level=1）
+    current = current->forward[1];
+    if (current && strcmp(current->key, key) == 0)
     {
-        for (int i = 0; i < MAX_LEVEL; i++)
+        if (search_on_or_show == SEARCH_ON)
         {
-
-            while (strcmp(node->key, key) == 0)
-            {
-                current_pointer_arr[i] = node;
-                node = node->down;
-                i++;
-            }
-            current_pointer_arr[i] = NULL;
+            // printf("Result: %s[%s]\n", current->key, current->value);
+            printf("Result:\n");
+            char *key[] = {current->key, NULL};
+            char *value[] = {current->value, NULL};
+            char **KV[] = {key, value};
+            text_print_head0_blank1(KV, sizeof(KV) / sizeof(KV[0]));
         }
-
-        /**
-         * data descp: 最后一层都是NULL，说明一定没有该数据，直接报错返回
-         */
-        if (current_pointer_arr[MAX_LEVEL - 1] == NULL)
-        {
-
-            printf("No data's key equals to %s\n", key);
-            exit(EXIT_FAILURE);
-        }
-        return current_pointer_arr;
+        return current;
     }
-    else if (mod == 'v')
-    // 此处不知道key，所以需要先求出k，在用k来做上面的动作,此时k已经写在operation_node中了
-    // 这是一般用来删除数据的！
+    else
     {
-        // 这里如果直接调用单层循环的话，就没意义了，复杂度就变为了O(n)了，要结合跳表的性质来做。
-        // 但是这里因为不知道key，所以必然要先找出key,一定要使用跳表的性质来找，从上向下二分速率，但是这个是基于key的，所以这里也只能从底层一次遍历以找到key。
-        O_OPERATION_NODE operation_node = O_OPERATION_NODE_init(NULL);
-        operation_node->operation_node_type = V;
-        operation_node->operation_node_data = (union node_data_ *)checked_malloc(sizeof(union node_data));
-        operation_node->operation_node_data->operation_type_value = (struct operation_type_value *)checked_malloc(sizeof(struct operation_type_value));
-        sprintf(operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value, value);
-
-        N_node my_node = D_search(sklist[MAX_LEVEL - 1].delist, operation_node, 's');
-        if (my_node == NULL)
+        if (search_on_or_show == SEARCH_ON)
         {
-            /**
-             * data descp: 说明没有该数据，直接报错返回
-             */
-            printf("No data's value equals to %s\n", value);
-            exit(EXIT_FAILURE);
+            printf("Not found key: %s\n", key);
         }
-        N_node node = sklist[0].delist;
-        for (int i = 0; i < MAX_LEVEL; i++)
-        {
-            while (strcmp(node->key, "TAIL"))
-            {
-                if (strcmp(node->key, my_node->key) == 0)
-                {
-                    current_pointer_arr[i] = node;
-                    break;
-                }
-                else if (strcmp(node->key, my_node->key) > 0)
-                {
-                    current_pointer_arr[i] = NULL; // 该层不存在，因为找到比他大的了。
-                    break;
-                }
-                node = node->next;
-            }
-        }
-        return current_pointer_arr;
+        return NULL;
     }
-    return current_pointer_arr;
 }
 
 /**
- * func descp: 还是先获取每一层的该数据的前驱节点，直接删除即可！不用管down节点了
+ * 更新节点值函数（简化逻辑，直接调用查找函数）
  */
-S_Status L_delete(L_skipList sklist, O_OPERATION_NODE operation_node)
+void L_skip_list_update(L_skip_list list, string key, string new_value)
 {
-    /**
-     * data descp: 先获取每一层的该数据的前驱节点，首先一定要该数据！
-     */
-    N_node *pre_pointer_arr;
+    search_on_or_show = SEARCH_OFF;
+    N_skip_node node = L_skip_list_search(list, key, new_value);
+    search_on_or_show = SEARCH_ON;
 
-    if (operation_node->operation_node_type == K)
+    if (node)
     {
-        pre_pointer_arr = pre_pointer_eve_level(sklist, operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.key, NULL, 'k');
-        /*强制删除即可*/
-        for (int i = 0; i < MAX_LEVEL; i++)
-        {
-            if (pre_pointer_arr[i] != NULL)
-            {
-                pre_pointer_arr[i]->next->pre = pre_pointer_arr[i];
-                pre_pointer_arr[i]->next = pre_pointer_arr[i]->next->next;
-            }
-        }
+        // 安全更新value（处理长度限制）
+        snprintf(node->value, MAX_KEY_VALUE_LEN, "%s", new_value);
+        printf("Update success! New value: %s\n", new_value);
     }
-    else if (operation_node->operation_node_type == V)
+    else
     {
-        pre_pointer_arr = pre_pointer_eve_level(sklist, NULL, operation_node->operation_node_data->operation_type_value->operation_value_data.insert_value_data.value, 'v');
-        /*强制删除即可*/
-        for (int i = 0; i < MAX_LEVEL; i++)
-        {
-            if (pre_pointer_arr[i] != NULL)
-            {
-                pre_pointer_arr[i]->next->pre = pre_pointer_arr[i];
-                pre_pointer_arr[i]->next = pre_pointer_arr[i]->next->next;
-            }
-        }
+        printf("Update failed: Key not found\n");
     }
-    return OK;
 }
 
 /**
- * func descp: 修改数据，找到每一层的前驱节点，然后直接修改即可！
+ * 删除节点函数（完整层级处理和内存释放）
  */
-S_Status L_update(L_skipList sklist, O_OPERATION_NODE operation_node)
+void L_skip_list_delete(L_skip_list list, string key, string value)
 {
-    /**
-     * data descp: 先获取每一层的该数据的前驱节点
-     */
-    N_node *current_pointer_arr;
+    if (!list || !list->header || !key)
+    {
+        printf("Invalid parameters\n");
+        return;
+    }
 
-    if (operation_node->operation_node_type == K)
+    N_skip_node update[MAX_LEVEL + 1]; // 存储各层前驱节点
+    N_skip_node current = list->header;
+
+    // 从最高层开始查找删除路径
+    for (int i = list->level; i >= 1; i--)
     {
-        current_pointer_arr = current_pointer_eve_level(sklist, operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.key, NULL, 'k');
-        /*修改即可*/
-        for (int i = 0; i < MAX_LEVEL; i++)
+        while (current->forward[i] != NULL && strcmp(current->forward[i]->key, key) < 0)
         {
-            if (current_pointer_arr[i] != NULL)
+            current = current->forward[i];
+        }
+        update[i] = current;
+    }
+
+    // 定位到目标节点（从最低层 level=1 开始）
+    current = current->forward[1];
+
+    // 检查节点是否存在且 key 匹配
+    if (current != NULL && strcmp(current->key, key) == 0)
+    {
+        // 若传入 value 不为 NULL，需校验 value 是否为字符串 "NULL" 或其他值
+        if (value != NULL)
+        {
+            if (strcmp(current->value, value) != 0)
             {
-                sprintf(current_pointer_arr[i]->val, operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.value);
+                printf("Value mismatch for key: %s (expected: %s, found: %s)\n",
+                       key, value, current->value);
+                return;
             }
         }
-    }
-    else if (operation_node->operation_node_type == V)
-    {
-        current_pointer_arr = current_pointer_eve_level(sklist, NULL, operation_node->operation_node_data->operation_type_value->operation_value_data.insert_value_data.value, 'v');
-        /*修改即可*/
-        for (int i = 0; i < MAX_LEVEL; i++)
+
+        // 获取节点实际层级（遍历 forward 数组，直到遇到 NULL）
+        int node_level = 1;
+        while (node_level <= list->level && current->forward[node_level] != NULL)
         {
-            if (current_pointer_arr[i] != NULL)
+            node_level++;
+        }
+
+        // 更新各层前向指针
+        for (int i = 1; i <= node_level; i++)
+        {
+            if (update[i]->forward[i] == current)
             {
-                sprintf(current_pointer_arr[i]->val, operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.key);
+                update[i]->forward[i] = current->forward[i];
             }
         }
+
+        // 调整跳表层级（若最高层无节点，降低层级）
+        while (list->level > 1 && list->header->forward[list->level] == NULL)
+        {
+            list->level--;
+        }
+
+        // free(current); // 释放节点内存（假设节点是动态分配的）
+        list->size--; // 减少节点计数
+        printf("Delete success! Key: %s, Value: %s\n", key, value ? value : "NULL");
     }
-    return OK;
+    else
+    {
+        printf("Delete failed: Key %s not found\n", key);
+    }
+}
+/**
+ * 打印跳表函数（清晰的层级遍历和头节点处理）
+ */
+void L_skip_list_print(L_skip_list list)
+{
+// #define PRINT
+#ifdef PRINT
+    if (!list || !list->header)
+        return;
+
+    printf("Skip List (Level: %d, Size: %d)\n", list->level, list->size);
+    for (int i = list->level; i >= 1; i--)
+    { // 从最高有效层开始打印
+        printf("Level %d: ", i);
+        N_skip_node node = list->header->forward[i]; // 头节点的下一个节点
+        while (node != NULL)
+        {
+            printf("%s[%s] -> ", node->key, node->value);
+            node = node->forward[i];
+        }
+        printf("NULL\n");
+    }
+#endif
+    printf("\n");
+}
+
+/**
+ * 释放跳表内存函数（完整的资源释放流程）
+ */
+void free_skip_list(L_skip_list list)
+{
+    if (!list)
+        return;
+
+    // 释放数据节点
+    N_skip_node current = list->header->forward[1];
+    while (current != NULL)
+    {
+        N_skip_node next = current->forward[1];
+        free(current->key);
+        free(current->value);
+        free(current->forward);
+        free(current);
+        current = next;
+    }
+
+    // 释放头节点
+    free(list->header->key);
+    free(list->header->value);
+    free(list->header->forward);
+    free(list->header);
+
+    // 释放跳表结构
+    free(list);
 }

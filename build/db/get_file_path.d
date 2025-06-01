@@ -1,4 +1,4 @@
-build\skiplist\parser.o: D:\1code\C_skip_list\src\skiplist\parser.c \
+build\db\get_file_path.o: D:\1code\C_skip_list\src\db\get_file_path.c \
  D:/1code/C_skip_list/include/include.h \
  D:/1code/C_skip_list/include/utils/utils.h \
  D:/1code/C_skip_list/include/skiplist/skiplist.h \
