@@ -149,7 +149,7 @@ void logo()
         printf(" /   \\/   \\/   \\ \n");
         printf(" \\___/\\___/\\___/  \n");
     }
-#endif
+
 
     {
         // 硬编码方式打印蜂窝图案
@@ -163,7 +163,7 @@ void logo()
         printf(" /     \\/     \\/     \\  \n");
         printf(" \\_____/\\_____/\\_____/  \n");
     }
-
+#endif
     {
         // // 硬编码方式打印蜂窝图案
         // printf("  __________     __________     __________  \n");
@@ -180,22 +180,21 @@ void logo()
         // printf("\\            /             /             /\n");
         // printf(" \\___________/  __________/  __________/\n");
         // 硬编码方式打印蜂窝图案
-    printf("    __________    __________    __________    \n");
-    printf("   /          \\  /          \\  /          \\   \n");
-    printf("  /            \\/            \\/            \\  \n");
-    printf("  \\            /\\            /\\            /  \n");
-    printf("   \\__________/  \\__________/  \\__________/   \n");
-    // printf("    __________    __________    __________    \n");
-    printf("   /          \\  /          \\  /          \\   \n");
-    printf("  /            \\/            \\/            \\  \n");
-    printf("  \\            /\\            /\\            /  \n");
-    printf("   \\__________/  \\__________/  \\__________/   \n");
-    // printf("    __________    __________    __________    \n");
-    printf("   /          \\  /          \\  /          \\   \n");
-    printf("  /            \\/            \\/            \\  \n");
-    printf("  \\            /\\            /\\            /  \n");
-    printf("   \\__________/  \\__________/  \\__________/   \n");
-
+        printf("    __________    __________    __________    \n");
+        printf("   /          \\  /          \\  /          \\   \n");
+        printf("  /            \\/            \\/            \\  \n");
+        printf("  \\            /\\            /\\            /  \n");
+        printf("   \\__________/  \\__________/  \\__________/   \n");
+        // printf("    __________    __________    __________    \n");
+        printf("   /          \\  /          \\  /          \\   \n");
+        printf("  /            \\/            \\/            \\  \n");
+        printf("  \\            /\\            /\\            /  \n");
+        printf("   \\__________/  \\__________/  \\__________/   \n");
+        // printf("    __________    __________    __________    \n");
+        printf("   /          \\  /          \\  /          \\   \n");
+        printf("  /            \\/            \\/            \\  \n");
+        printf("  \\            /\\            /\\            /  \n");
+        printf("   \\__________/  \\__________/  \\__________/   \n");
     }
 }
 
@@ -392,7 +391,7 @@ void argc3(C_command command, O_OPERATION_NODE operation_node)
 void argc4(C_command command, O_OPERATION_NODE operation_node)
 {
     TODO_PRINT("4 level operation...");
-
+    /*hd \ -v value*/
     if (strcmp(command->argv[1], "\\") == 0)
     {
         if (strcmp(command->argv[2], "-v") == 0)
@@ -406,7 +405,7 @@ void argc4(C_command command, O_OPERATION_NODE operation_node)
             operation_node->operation_node_data->operation_type_value->operation_value = FIND_KEY;
             LOG_PRINT("passed2");
 
-            sprintf(operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value, "%s", command->argv[2]);
+            sprintf(operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value, "%s", command->argv[3]);
             LOG_PRINT("delete value:%s", operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value);
             return OK;
         }
@@ -421,11 +420,12 @@ void argc4(C_command command, O_OPERATION_NODE operation_node)
             operation_node->operation_node_data->operation_type_key->operation_key = FIND_VALUE;
             LOG_PRINT("passed2");
 
-            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key, "%s", command->argv[2]);
+            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key, "%s", command->argv[3]);
             LOG_PRINT("delete key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.delete_key_data.key);
             return OK;
         }
     }
+    /*hd + -v xidian*/
     else if (strcmp(command->argv[1], "+") == 0)
     {
         if (strcmp(command->argv[2], "-v") == 0)
@@ -442,6 +442,7 @@ void argc4(C_command command, O_OPERATION_NODE operation_node)
             LOG_PRINT("delete value:%s", operation_node->operation_node_data->operation_type_value->operation_value_data.insert_value_data.value);
             return OK;
         }
+        /*hd + xidian 985*/
         else
         {
             TODO_PRINT("hd + key value");

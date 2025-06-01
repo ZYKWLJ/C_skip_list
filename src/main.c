@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
     P_parser(command, operation_node);
     LOG_PRINT("Before call: operation_node = %p\n", (void *)operation_node);
 
-    D_E_exec(delist, operation_node);
+    // D_E_exec(delist, operation_node);
+    L_E_exec(delist, operation_node);
 
 #else
     L_skipList sklist = L_skipList_init(NULL);

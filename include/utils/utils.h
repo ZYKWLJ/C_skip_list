@@ -36,7 +36,7 @@ void COMMAND_ERROR(C_command command, const char *format, ...);
  * author:EthanYankang
  * create time:2025/05/01 14:41:31
  */
-// #define LOG
+#define LOG
 #ifdef LOG
 // #define LOG_PRINT(msg) printf("[LOG %s %s %s:%d] %s\n" __DATE__, __TIME__, __FILE__, __LINE__, msg)
 #define LOG_PRINT(...)                                                    \
@@ -57,7 +57,7 @@ void COMMAND_ERROR(C_command command, const char *format, ...);
  * create time:2025/05/01 14:42:08
  */
 
-// #define TODO
+#define TODO
 #ifdef TODO
 #define TODO_PRINT(...)                                                    \
     printf("[TODO %s %s %s:%d] ", __DATE__, __TIME__, __FILE__, __LINE__); \

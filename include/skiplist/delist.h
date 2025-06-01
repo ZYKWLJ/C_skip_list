@@ -18,7 +18,7 @@ typedef struct node_
 {
     struct node_ *pre;
     struct node_ *next;
-    struct node_ *down; // 向下的指针，足够了,最后一层向下的指针为NULL即可
+    struct node_ *down; // 向下的指针，//不需要了，因为只要双向链表数组就可以实现网了
     string key;
     string val;
 
@@ -34,13 +34,15 @@ typedef struct delist_
     // N_node
 } *D_delist;
 
-
+N_node N_init_node(N_node node);
+void N_print_node(N_node node);
 
 D_delist D_init_delist(D_delist delist);
-N_node N_init_node(N_node node);
 void D_print_delist(D_delist delist);
-S_Status D_search(D_delist delist, O_OPERATION_NODE operation_node);
-S_Status D_insert(D_delist delist, O_OPERATION_NODE operation_node);
+// S_Status D_search(D_delist delist, O_OPERATION_NODE operation_node, char mod /*是search还是其他借用*/);
+N_node D_search(D_delist delist, O_OPERATION_NODE operation_node, char mod /*是search还是其他借用*/);
+// S_Status D_insert(D_delist delist, O_OPERATION_NODE operation_node);
+N_node D_insert(D_delist delist, O_OPERATION_NODE operation_node);
 S_Status D_delete(D_delist delist, O_OPERATION_NODE operation_node);
 S_Status D_update(D_delist delist, O_OPERATION_NODE operation_node);
 
