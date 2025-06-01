@@ -1,4 +1,5 @@
-build\skiplist\parser.o: D:\1code\C_skip_list\src\skiplist\parser.c \
+build\db\save_data_to_disk.o: \
+ D:\1code\C_skip_list\src\db\save_data_to_disk.c \
  D:/1code/C_skip_list/include/include.h \
  D:/1code/C_skip_list/include/utils/utils.h \
  D:/1code/C_skip_list/include/skiplist/skiplist.h \

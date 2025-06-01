@@ -1,4 +1,6 @@
 #include "../../include/include.h"
+extern L_skip_list skip_list;
+
 // #include "operation.h"
 // #include "operation.h"
 // #include "operation.h"
@@ -15,22 +17,21 @@ hd ? -
 
 查找(\):
 hd \ xidian
-hd \ -v xidian
-hd \ -k xidian
 
 插入(+):
+可指定键值对，可仅仅制定键
+
 hd + xidian 211
-hd + -v  xidian
-hd + -k  xidian 211
+hd + xidian
+
 
 删除(-):
 hd - xidian
-hd - -v xidian
-hd - -k xidian
 
 修改(/):
 hd / xidian 211
-hd / -k xidian 211
+hd / xidian（删除值）
+
 //修改就没必要说修改某个值，修改键值对才有意义
 */
 
@@ -82,15 +83,15 @@ void help_add()
 }
 void param_optional()
 {
-    printf("  []:must\n");
+    // printf("  []:must\n");
     printf("  ():optional\n");
-    printf("  | :or\n");
+    // printf("  | :or\n");
 }
 void print_help_curd()
 {
 
     char *name[] = {"Operations", "Add data:", "Delete data:", "Query data:", "Modify data:", NULL};
-    char *instructions[] = {"Commands", "hd + [(-k)|-v] [key value|value]", "hd - [(-k)|-v] [key|value]", "hd \\ [(-k)|-v] [key|value]", "hd / [(-k)] [key value]", NULL};
+    char *instructions[] = {"Commands", "hd + key (value)", "hd - key", "hd \\ key", "hd / key", NULL};
     char **columns[] = {name, instructions};
     // text_print_head0_blank0(columns, sizeof(columns) / sizeof(columns[0]));
     text_print_head1_blank0(columns, sizeof(columns) / sizeof(columns[0]));
@@ -149,7 +150,7 @@ void logo()
         printf(" /   \\/   \\/   \\ \n");
         printf(" \\___/\\___/\\___/  \n");
     }
-#endif
+
 
     {
         // 硬编码方式打印蜂窝图案
@@ -163,7 +164,7 @@ void logo()
         printf(" /     \\/     \\/     \\  \n");
         printf(" \\_____/\\_____/\\_____/  \n");
     }
-
+#endif
     {
         // // 硬编码方式打印蜂窝图案
         // printf("  __________     __________     __________  \n");
@@ -180,22 +181,21 @@ void logo()
         // printf("\\            /             /             /\n");
         // printf(" \\___________/  __________/  __________/\n");
         // 硬编码方式打印蜂窝图案
-    printf("    __________    __________    __________    \n");
-    printf("   /          \\  /          \\  /          \\   \n");
-    printf("  /            \\/            \\/            \\  \n");
-    printf("  \\            /\\            /\\            /  \n");
-    printf("   \\__________/  \\__________/  \\__________/   \n");
-    // printf("    __________    __________    __________    \n");
-    printf("   /          \\  /          \\  /          \\   \n");
-    printf("  /            \\/            \\/            \\  \n");
-    printf("  \\            /\\            /\\            /  \n");
-    printf("   \\__________/  \\__________/  \\__________/   \n");
-    // printf("    __________    __________    __________    \n");
-    printf("   /          \\  /          \\  /          \\   \n");
-    printf("  /            \\/            \\/            \\  \n");
-    printf("  \\            /\\            /\\            /  \n");
-    printf("   \\__________/  \\__________/  \\__________/   \n");
-
+        printf("    __________    __________    __________    \n");
+        printf("   /          \\  /          \\  /          \\   \n");
+        printf("  /            \\/            \\/            \\  \n");
+        printf("  \\            /\\            /\\            /  \n");
+        printf("   \\__________/  \\__________/  \\__________/   \n");
+        // printf("    __________    __________    __________    \n");
+        printf("   /          \\  /          \\  /          \\   \n");
+        printf("  /            \\/            \\/            \\  \n");
+        printf("  \\            /\\            /\\            /  \n");
+        printf("   \\__________/  \\__________/  \\__________/   \n");
+        // printf("    __________    __________    __________    \n");
+        printf("   /          \\  /          \\  /          \\   \n");
+        printf("  /            \\/            \\/            \\  \n");
+        printf("  \\            /\\            /\\            /  \n");
+        printf("   \\__________/  \\__________/  \\__________/   \n");
     }
 }
 
@@ -225,6 +225,12 @@ void honeydb()
         printf("                                                                       |___/              \n");
     }
 }
+
+void print_e_i()
+{
+    printf("Honeydb provides explicit and implicit data operations. Explicit operations involve specifying both keys and values to manipulate data, while implicit operations only specify keys, with values defaulting to NULL.\n");
+    printf("We offer both explicit and implicit operations for adding and modifying data. Specifically, 'hd + key' is equivalent to 'hd + key NULL', and 'hd / key' is equivalent to 'hd / key NULL'.\n");
+}
 void menu()
 {
     logo();
@@ -236,15 +242,15 @@ void menu()
     // 内置如下命令，如下：
     // 帮助手册：hd ?
     printf("HoneyDB is a lightweight key-value database that uses a skip list as its default kernel, enabling query time complexity of log(n).\n");
+    print_e_i();
     printf("The built-in commands are as follows:\n");
     char *name[] = {"Operations", "Add data:", "Delete data:", "Query data:", "Modify data:", "Help manual:", NULL};
-    char *instructions[] = {"Commands", "hd + [(-k)|-v] [key value|value]", "hd - [(-k)|-v] [key|value]", "hd \\ [(-k)|-v] [key|value]", "hd / [(-k)] [key value]", "hd ?", NULL};
+    char *instructions[] = {"Commands", "hd + key (value)", "hd - key", "hd \\ key", "hd / key", "hd ?", NULL};
     char **columns[] = {name, instructions};
     // text_print_head0_blank0(columns, sizeof(columns) / sizeof(columns[0]));
     text_print_head1_blank0(columns, sizeof(columns) / sizeof(columns[0]));
     // print_help_curd();
     // printf("Help manual: \nhd ?\n");
-
     //  printf("\n");
     param_optional();
     author();
@@ -261,17 +267,19 @@ void argc2()
     printf("HELP REFERENCE\n");
     // printf("The use of the four manuals is shown, and here are only four commands and commands for further help viewing\n");
     // honeydb指令如下：
-    // hd + [(-k)|-v] [key value|value] 添加数据
-    // hd - [(-k)|-v] [key|value] 删除数据
-    // hd \ [(-k)|-v] [key|value] 查找数据
+    // hd +  [key value|value] 添加数据
+    // hd -  [key|value] 删除数据
+    // hd \  [key|value] 查找数据
     // hd / [(-k)] [key value] 修改数据
     printf("HoneyDB data operation commands are as follows:\n");
     print_help_curd();
     // return OK;
     exit(EXIT_SUCCESS);
 }
+
 void argc3(C_command command, O_OPERATION_NODE operation_node)
 {
+#if 0
     if (strcmp(command->argv[1], "?") == 0)
     {
         LOG_PRINT("parser....?");
@@ -279,13 +287,8 @@ void argc3(C_command command, O_OPERATION_NODE operation_node)
         if (strcmp(command->argv[2], "\\") == 0)
         {
             TODO_PRINT("help find operation...");
-            // honeydb提供显隐数据操作,显式操作即通过key来操作数据，隐式操作即通过value来操作数据。
-            // 在查找数据操作中：
-            // 显式操作格式如下，其中-k可以省略：
-            // hd \ -k key
-            // 隐式操作格式如下：
-            // hd \ -v value
-            help_find();
+            print_e_i();
+            // help_find();
             // return OK;
             exit(EXIT_SUCCESS);
         }
@@ -296,7 +299,7 @@ void argc3(C_command command, O_OPERATION_NODE operation_node)
             // 在修改数据操作中：
             // 显式操作格式如下，其中-k可以省略：
             // hd / -k key value
-            help_modify();
+            // help_modify();
             // return OK;
             exit(EXIT_SUCCESS);
         }
@@ -333,53 +336,59 @@ void argc3(C_command command, O_OPERATION_NODE operation_node)
             exit(EXIT_FAILURE);
         }
     }
-    /**
+    /**命令1
      * data descp: 查找k ，hd \ xidian
      */
-    else if (strcmp(command->argv[1], "\\") == 0)
+    else
+#endif
+    if (strcmp(command->argv[1], "\\") == 0)
     {
         TODO_PRINT("find k-v operation...");
         LOG_PRINT("Just set type to: %d\n", operation_node->operation_node_type);
+        // L_skip_list_search(skip_list, command->argv[2], NULL);
+        operation_node->operation_node_type = FIND;
+        sprintf(operation_node->key, command->argv[2]);
         LOG_PRINT("passed1");
-        operation_node->operation_node_type = K;
-        operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-        operation_node->operation_node_data->operation_type_key = (OPERATION_TYPE_KEY)checked_malloc(sizeof(struct operation_type_key));
-        LOG_PRINT("passed2");
-        sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key, "%s", command->argv[2]);
-        LOG_PRINT("find key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key);
-
-        operation_node->operation_node_data->operation_type_key->operation_key = FIND_KEY;
-        LOG_PRINT("Just set type to: %d\n", operation_node->operation_node_data->operation_type_key->operation_key);
         return OK;
     }
-    /**
+    /**命令2
      * data descp: 删除k，hd - xidian
      */
     else if (strcmp(command->argv[1], "-") == 0)
     {
         TODO_PRINT("delete k-v operation...");
+        /**
+         * data descp: 就是删除对应键值就行了！
+         */
+        // L_skip_list_delete(skip_list, command->argv[2], NULL);
+        operation_node->operation_node_type = DELETE;
+        sprintf(operation_node->key, command->argv[2]);
         LOG_PRINT("passed1");
-        operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-        operation_node->operation_node_data->operation_type_key = (OPERATION_TYPE_KEY)checked_malloc(sizeof(struct operation_type_key));
-        operation_node->operation_node_data->operation_type_key->operation_key = DELETE_KEY;
-        LOG_PRINT("passed2");
-
-        sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key, "%s", command->argv[2]);
-        LOG_PRINT("delete key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.delete_key_data.key);
-        operation_node->operation_node_type = K;
         return OK;
     }
+    /**命令3仅添加键(这是唯一个二级命令)
+     * data descp: hd + xidian
+     */
     else if (strcmp(command->argv[1], "+") == 0)
     {
-        TODO_PRINT("hd \\ -v value");
-        operation_node->operation_node_type = V;
-        LOG_PRINT("passed1");
-        operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-        operation_node->operation_node_data->operation_type_value = (OPERATION_TYPE_VALUE)checked_malloc(sizeof(struct operation_type_value));
-        operation_node->operation_node_data->operation_type_value->operation_value = INSERT_KEY;
-        LOG_PRINT("passed2");
-        sprintf(operation_node->operation_node_data->operation_type_value->operation_value_data.insert_value_data.value, "%s", command->argv[2]);
-        LOG_PRINT("insert value:%s", operation_node->operation_node_data->operation_type_value->operation_value_data.insert_value_data.value);
+        TODO_PRINT("hd + value");
+        // L_skip_list_insert(skip_list, command->argv[2], NULL);
+        operation_node->operation_node_type = INSERT;
+        sprintf(operation_node->key, command->argv[2]);
+        sprintf(operation_node->value, "NULL");
+        return OK;
+    }
+    /**
+     * data descp: hd / xidian
+     * 这是直接删除值
+     */
+    else if (strcmp(command->argv[1], "/") == 0)
+    {
+        TODO_PRINT("hd / key");
+        // L_skip_list_insert(skip_list, command->argv[2], NULL);
+        operation_node->operation_node_type = UPDATE;
+        sprintf(operation_node->key, command->argv[2]);
+        sprintf(operation_node->value, "NULL");
         return OK;
     }
     else
@@ -391,181 +400,34 @@ void argc3(C_command command, O_OPERATION_NODE operation_node)
 
 void argc4(C_command command, O_OPERATION_NODE operation_node)
 {
-    TODO_PRINT("4 level operation...");
-
-    if (strcmp(command->argv[1], "\\") == 0)
-    {
-        if (strcmp(command->argv[2], "-v") == 0)
-        {
-            TODO_PRINT("hd \\ -v value");
-            TODO_PRINT("find k-v operation...");
-            operation_node->operation_node_type = V;
-            LOG_PRINT("passed1");
-            operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-            operation_node->operation_node_data->operation_type_value = (OPERATION_TYPE_VALUE)checked_malloc(sizeof(struct operation_type_value));
-            operation_node->operation_node_data->operation_type_value->operation_value = FIND_KEY;
-            LOG_PRINT("passed2");
-
-            sprintf(operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value, "%s", command->argv[2]);
-            LOG_PRINT("delete value:%s", operation_node->operation_node_data->operation_type_value->operation_value_data.find_value_data.value);
-            return OK;
-        }
-        else if (strcmp(command->argv[2], "-k") == 0)
-        {
-            TODO_PRINT("hd \\ -k value");
-            TODO_PRINT("find k-v operation...");
-            operation_node->operation_node_type = K;
-            LOG_PRINT("passed1");
-            operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-            operation_node->operation_node_data->operation_type_key = (OPERATION_TYPE_KEY)checked_malloc(sizeof(struct operation_type_key));
-            operation_node->operation_node_data->operation_type_key->operation_key = FIND_VALUE;
-            LOG_PRINT("passed2");
-
-            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.find_key_data.key, "%s", command->argv[2]);
-            LOG_PRINT("delete key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.delete_key_data.key);
-            return OK;
-        }
-    }
-    else if (strcmp(command->argv[1], "+") == 0)
-    {
-        if (strcmp(command->argv[2], "-v") == 0)
-        {
-            TODO_PRINT("hd \\ -v value");
-            TODO_PRINT("find k-v operation...");
-            operation_node->operation_node_type = V;
-            LOG_PRINT("passed1");
-            operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-            operation_node->operation_node_data->operation_type_value = (OPERATION_TYPE_VALUE)checked_malloc(sizeof(struct operation_type_value));
-            operation_node->operation_node_data->operation_type_value->operation_value = INSERT_KEY;
-            LOG_PRINT("passed2");
-            sprintf(operation_node->operation_node_data->operation_type_value->operation_value_data.insert_value_data.value, "%s", command->argv[3]);
-            LOG_PRINT("delete value:%s", operation_node->operation_node_data->operation_type_value->operation_value_data.insert_value_data.value);
-            return OK;
-        }
-        else
-        {
-            TODO_PRINT("hd + key value");
-            TODO_PRINT("add k-v operation...");
-            operation_node->operation_node_type = K;
-            LOG_PRINT("passed1");
-            operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-            operation_node->operation_node_data->operation_type_key = (OPERATION_TYPE_KEY)checked_malloc(sizeof(struct operation_type_key));
-            operation_node->operation_node_data->operation_type_key->operation_key = INSERT_KEY;
-            LOG_PRINT("passed2");
-            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.key, "%s", command->argv[2]);
-            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.value, "%s", command->argv[3]);
-            LOG_PRINT("insert date key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.key);
-            LOG_PRINT("delete data value:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.value);
-            return OK;
-        }
-    }
-    else if (strcmp(command->argv[1], "-") == 0)
-    {
-        if (strcmp(command->argv[2], "-v") == 0)
-        {
-            TODO_PRINT("hd \\ -v value");
-            TODO_PRINT("find k-v operation...");
-            operation_node->operation_node_type = V;
-            LOG_PRINT("passed1");
-            operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-            operation_node->operation_node_data->operation_type_value = (OPERATION_TYPE_VALUE)checked_malloc(sizeof(struct operation_type_value));
-            operation_node->operation_node_data->operation_type_value->operation_value = DELETE_KEY;
-            LOG_PRINT("passed2");
-            sprintf(operation_node->operation_node_data->operation_type_value->operation_value_data.delete_value_data.value, "%s", command->argv[3]);
-            LOG_PRINT("delete value:%s", operation_node->operation_node_data->operation_type_value->operation_value_data.delete_value_data.value);
-            return OK;
-        }
-        else if (strcmp(command->argv[2], "-k") == 0)
-        {
-            TODO_PRINT("hd + key value");
-            TODO_PRINT("add k-v operation...");
-            operation_node->operation_node_type = K;
-            LOG_PRINT("passed1");
-            operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-            operation_node->operation_node_data->operation_type_key = (OPERATION_TYPE_KEY)checked_malloc(sizeof(struct operation_type_key));
-            operation_node->operation_node_data->operation_type_key->operation_key = DELETE_KEY;
-            LOG_PRINT("passed2");
-            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.delete_key_data.key, "%s", command->argv[2]);
-            LOG_PRINT("delete date key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.delete_key_data.key);
-            return OK;
-        }
-        else
-        {
-            COMMAND_ERROR(command, "--Error input, enter \"hd ?\" to get help\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-    else if (strcmp(command->argv[1], "/") == 0)
-    {
-        TODO_PRINT("hd / key value");
-        TODO_PRINT("modify k-v operation...");
-        operation_node->operation_node_type = K;
-        LOG_PRINT("passed1");
-        operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-        operation_node->operation_node_data->operation_type_key = (OPERATION_TYPE_KEY)checked_malloc(sizeof(struct operation_type_key));
-        operation_node->operation_node_data->operation_type_key->operation_key = UPDATE_KEY;
-        LOG_PRINT("passed2");
-        sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.key, "%s", command->argv[2]);
-        LOG_PRINT("update date key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.key);
-        return OK;
-    }
-    return OK;
-}
-
-void argc5(C_command command, O_OPERATION_NODE operation_node)
-{
-    TODO_PRINT("5 level operation...");
+    /**命令4
+     * data descp: hd + xidian 211
+     */
     if (strcmp(command->argv[1], "+") == 0)
     {
-        if (strcmp(command->argv[2], "-k") == 0)
-        {
-            TODO_PRINT("hd + -k key value");
-            TODO_PRINT("insert k-v operation...");
-            operation_node->operation_node_type = K;
-            LOG_PRINT("passed1");
-            operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-            operation_node->operation_node_data->operation_type_key = (OPERATION_TYPE_KEY)checked_malloc(sizeof(struct operation_type_key));
-            operation_node->operation_node_data->operation_type_key->operation_key = INSERT_KEY;
-            LOG_PRINT("passed2");
-            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.key, "%s", command->argv[3]);
-            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.value, "%s", command->argv[4]);
-            LOG_PRINT("insert date key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.key);
-            LOG_PRINT("insert date key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.insert_key_data.value);
-            return OK;
-        }
-        else
-        {
-            COMMAND_ERROR(command, "--Error input, enter \"hd ?\" to get help\n");
-            exit(EXIT_FAILURE);
-        }
+        // L_skip_list_insert(skip_list, command->argv[2], command->argv[3]);
+        operation_node->operation_node_type = INSERT;
+        sprintf(operation_node->key, command->argv[2]);
+        sprintf(operation_node->value, command->argv[3]);
+        LOG_PRINT("node:%s[%s]", operation_node->key, operation_node->value);
     }
+    /**命令5
+     * data descp: hd / xidian 985
+     */
     else if (strcmp(command->argv[1], "/") == 0)
     {
-        if (strcmp(command->argv[2], "-k") == 0)
-        {
-            TODO_PRINT("hd / key value");
-            TODO_PRINT("modify k-v operation...");
-            operation_node->operation_node_type = K;
-            LOG_PRINT("passed1");
-            operation_node->operation_node_data = (union node_data *)checked_malloc(sizeof(union node_data));
-            operation_node->operation_node_data->operation_type_key = (OPERATION_TYPE_KEY)checked_malloc(sizeof(struct operation_type_key));
-            operation_node->operation_node_data->operation_type_key->operation_key = UPDATE_KEY;
-            LOG_PRINT("passed2");
-            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.key, "%s", command->argv[3]);
-            sprintf(operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.value, "%s", command->argv[4]);
-            LOG_PRINT("update date key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.key);
-            LOG_PRINT("update date key:%s", operation_node->operation_node_data->operation_type_key->operation_key_data.update_key_data.value);
-            return OK;
-        }
-        else
-        {
-            COMMAND_ERROR(command, "--Error input, enter \"hd ?\" to get help\n");
-            exit(EXIT_FAILURE);
-        }
+        // L_skip_list_update(skip_list, command->argv[2], command->argv[3]);
+        operation_node->operation_node_type = UPDATE;
+        sprintf(operation_node->key, command->argv[2]);
+        sprintf(operation_node->value, command->argv[3]);
     }
-
-    return OK;
+    else
+    {
+        COMMAND_ERROR(command, "--Error input, enter \"hd ?\" to get help\n");
+        exit(EXIT_FAILURE);
+    }
 }
+
 S_Status P_parser(C_command command, O_OPERATION_NODE operation_node)
 {
     LOG_PRINT("parser....");
@@ -594,16 +456,8 @@ S_Status P_parser(C_command command, O_OPERATION_NODE operation_node)
     {
         argc4(command, operation_node);
     }
-    /**
-     * data descp: 五级命令
-     */
-    else if (command->argc == 5)
-    {
-        argc5(command, operation_node);
-    }
     else
     {
-
         COMMAND_ERROR(command, "--Error input, enter \"hd ?\" to get help\n");
         exit(EXIT_FAILURE);
     }
@@ -612,5 +466,7 @@ S_Status P_parser(C_command command, O_OPERATION_NODE operation_node)
 O_OPERATION_NODE O_OPERATION_NODE_init(O_OPERATION_NODE o_operation_node)
 {
     O_OPERATION_NODE ret = (O_OPERATION_NODE)checked_malloc(sizeof(*o_operation_node));
+    ret->key = (string)checked_malloc(sizeof(char) * 10000);
+    ret->value = (string)checked_malloc(sizeof(char) * 10000);
     return ret;
 }
